@@ -50,6 +50,7 @@ CRGBPalette16 Pal;
  * Effects list
  */
 void (*effects[])() = {
+  minecraft,
   xyTester,               //#0
   hueRotationEffect,      //#1
   animatePacChase,       //#2, pink
@@ -114,6 +115,122 @@ void changeBrightness() {
 /*********************************************************************************************************
  * Effects
  */
+void minecraft() {
+  uint8_t i,x,y, idx,p1,p2;
+const CRGB pal[] = {
+  {0x21, 0x94, 0x52},  /*Color of index 0*/
+  {0x29, 0x39, 0x5a},   /*Color of index 1*/
+  {0x6b, 0x6b, 0x6b},   /*Color of index 2*/
+  {0x39, 0x52, 0x7b},   /*Color of index 3*/
+  {0x42, 0x63, 0x8c},   /*Color of index 4*/
+  {0x42, 0x6b, 0x94},   /*Color of index 5*/
+  {0x84, 0x84, 0x84},   /*Color of index 6*/
+  {0x52, 0x77, 0xa8},   /*Color of index 7*/
+  {0x2d, 0x98, 0x56},   /*Color of index 8*/
+  {0x31, 0xa5, 0x63},   /*Color of index 9*/
+  {0x39, 0xa5, 0x63},   /*Color of index 10*/
+  {0x39, 0xad, 0x6b},   /*Color of index 11*/
+  {0x42, 0xad, 0x6b},   /*Color of index 12*/
+  {0x42, 0xb5, 0x73},   /*Color of index 13*/
+  {0x4a, 0xb5, 0x73},   /*Color of index 14*/
+  {0x5d, 0xc0, 0x8d}   /*Color of index 15*/
+};
+
+const uint8_t minecraft_map[8][8] = {
+  0xee, 0xea, 0xac, 0x9c, 0xee, 0xca, 0xca, 0x0c, 
+  0xec, 0xfe, 0xe1, 0xca, 0x9f, 0xfe, 0xac, 0xac, 
+  0xf1, 0xfa, 0xc1, 0xc1, 0xee, 0xff, 0x18, 0xa1, 
+  0x12, 0x11, 0xc1, 0x11, 0x91, 0xc1, 0x31, 0x13, 
+  0x53, 0x57, 0x15, 0x33, 0x11, 0x12, 0x35, 0x13, 
+  0x31, 0x55, 0x35, 0x11, 0x13, 0x31, 0x33, 0x37, 
+  0x71, 0x33, 0x63, 0x37, 0x73, 0x77, 0x35, 0x35, 
+  0x73, 0x77, 0x55, 0x33, 0x51, 0x55, 0x33, 0x45, 
+};
+
+const uint8_t creeper[8][4] = {
+  0x0a, 0xa0, 0x00, 0x0d, 
+  0x0d, 0x00, 0xad, 0x0d, 
+  0xa1, 0x1a, 0x01, 0x10, 
+  0xd1, 0x1a, 0x01, 0x1a, 
+  0xd0, 0x01, 0x10, 0xdd, 
+  0x0a, 0x11, 0x11, 0x00, 
+  0x00, 0x11, 0x11, 0xa0, 
+  0x0a, 0x1d, 0x01, 0x00, 
+};
+/*
+ for(uint8_t i = 0; i<128; i++)
+   leds[i]=CRGB(255,0,0);
+ FastLED.show();
+ delay(500);
+
+ wipeMatrices(); 
+ for(uint8_t i = 0; i<128; i++)
+   leds[i]=CRGB(0,255,0);
+ FastLED.show();
+ delay(5000);
+
+ wipeMatrices(); 
+for(uint8_t i = 0; i<128; i++)
+   leds[i]=CRGB(0,0,255);
+ FastLED.show();
+ delay(5000);
+
+ wipeMatrices(); 
+ for(uint8_t i = 0; i<128; i++)
+   leds[i]=pal[i/8];
+ FastLED.show();
+ delay(5000);
+ 
+ wipeMatrices(); 
+ leds[XY(0,0,false,false)]=pal[0];
+ leds[XY(0,1,false,false)]=pal[1];
+ leds[XY(1,1,false,false)]=pal[1];
+ leds[XY(0,2,false,false)]=pal[2];
+ leds[XY(1,2,false,false)]=pal[2];
+ leds[XY(2,2,false,false)]=pal[2];
+ FastLED.show();
+ delay(5000);
+
+ wipeMatrices(); 
+ */
+  for( i = 0; i<15; i++)
+  {
+  for (y = 0; y < 8; y++) {
+    for (x = 0; x < 8; x++) {
+      idx = minecraft_map[y][x];
+      p1,p2;
+      p1=idx>>4;
+      p2=idx & 0x0F;
+      leds[XY( 2*x+i, y,true, false)] = pal[p1];
+      leds[XY( 2*x+1+i, y, true, false)] = pal[p2];
+    }
+  }
+  FastLED.show();
+  delay(500);
+  }
+  
+  for( i = 0; i<15; i++)
+  {
+  for ( y = 0; y < 8; y++) {
+    for ( x = 0; x < 4; x++) {
+      idx = creeper[y][x];
+      p1,p2;
+      p1=idx>>4;
+      p2=idx & 0x0F;
+      leds[XY( 2*x  +(15-i), y,true, false)] = pal[p1];
+      leds[XY( 2*x+1+(15-i), y, true, false)] = pal[p2];
+      leds[XY( 2*x+(23-i), y,true, false)] = pal[p1];
+      leds[XY( 2*x+1+(23-i), y, true, false)] = pal[p2];
+//      Serial.printf (" %#x  %#x ",p1, p2); 
+    }
+  }
+  FastLED.show();
+  delay(500);
+  }
+//  FastLED.show();
+//  delay(5000);
+}
+ 
 void xyTester() {
   static uint8_t x=0;
   static uint8_t y=0;
@@ -370,10 +487,12 @@ uint16_t XY(uint8_t x, uint8_t y, bool wrapX, bool wrapY) {
   //y = (kMatrixHeight-1) - y;
   
   if (wrapX == true) {
-    while(x > matrixMaxX) x -= kMatrixWidth;
+//    while(x > matrixMaxX) x -= kMatrixWidth;
+      x=x%kMatrixWidth;
   }
   if (wrapY == true) {
-    while(y > matrixMaxY) y -= kMatrixHeight;
+//    while(y > matrixMaxY) y -= kMatrixHeight;
+    y=y%kMatrixHeight;
   }
 
   //uncomment if LEDs are arranged in zigzag

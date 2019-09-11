@@ -53,6 +53,7 @@ void hueRotationEffect();
 void DrawOneFrame( byte startHue8, int8_t yHueDelta8, int8_t xHueDelta8);
 void animatePacChase();
 void animatePacman();
+void minecraft();
 void hue();
 void fireworks();
 void firepit();
