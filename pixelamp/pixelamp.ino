@@ -48,6 +48,7 @@ CRGBPalette16 Pal;
  * Effects list
  */
 void (*effects[])() = {
+  mario,
   heliox,
   matrix,
 
@@ -109,7 +110,7 @@ void changeAnimation() {
 
 void changeBrightness() {
   static int oldValue = brightness;
-  int potValue = 220; //analogRead(POT_BRIGHTNESS);
+  int potValue = 280; //analogRead(POT_BRIGHTNESS);
   potValue = constrain(potValue, POT_BRIGHTNESS_MIN, POT_BRIGHTNESS_MAX);
   int newValue = map(potValue, POT_BRIGHTNESS_MIN, POT_BRIGHTNESS_MAX, 0, 255);
 
@@ -251,16 +252,14 @@ void heliox() {
 
 
 void mario() {
-  uint8_t i,x,y, idx,p1,p2;
-  static uint8_t pos=0;
+  uint8_t x,y, idx,p1,p2;
+  static uint8_t pos=0, anim=0;
 
-  for( i = 0; i<39; i++)
-  {
     for (y = 0; y < 8; y++) 
     {
       for (x = 0; x < 4; x++) 
       {
-        idx = mario_map[y+(8*i)][x];
+        idx = mario_map[y+(8*anim)][x];
         p1=idx>>4;
         p2=idx & 0x0F;
         leds[XY( 2*x+pos, y,true, false)] = mario_pal[p1];
@@ -274,8 +273,10 @@ void mario() {
     FastLED.show();
     delay(500);
     pos++;
+    anim++;
     if(pos==15) pos=0;
-  }
+    if(anim==39) anim=0;
+ 
 }
 
 void matrix() {
