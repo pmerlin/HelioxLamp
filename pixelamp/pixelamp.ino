@@ -50,6 +50,9 @@ CRGBPalette16 Pal;
  * Effects list
  */
 void (*effects[])() = {
+  heliox,
+  mario,
+  matrix,
   minecraft,
   xyTester,               //#0
   hueRotationEffect,      //#1
@@ -115,6 +118,84 @@ void changeBrightness() {
 /*********************************************************************************************************
  * Effects
  */
+void heliox() {
+  uint8_t x,y, idx,p1,p2;
+  static uint8_t pos=0;
+
+  for( x = 0; x<15; x++)
+    for( y = 0; y<8; y++)
+      leds[XY( x, y,false, false)]=leds[XY( x+1, y,false, false)];
+      
+      
+  for (y = 0; y < 8; y++) 
+  {
+        idx = heliox_map[y][pos];
+        if(pos & 0x00)
+        {
+          p1=idx>>4;
+          if(p1) p1=14;
+          leds[XY( 15, y,false, false)] = heliox_pal[p1];
+        }
+        else
+        {
+          p2=idx & 0x0F;
+          if(p2) p2=14;
+          leds[XY( 15, y,false, false)] = heliox_pal[p2];
+        }
+  }
+    FastLED.show();
+    delay(500);
+
+  pos++;
+  if(pos==41) pos=0;
+}
+
+
+void mario() {
+  uint8_t i,x,y, idx,p1,p2;
+
+/*Color of index 6 Mario red 255 0 74(4a) -> 0 231(E7) 86 (56)*/
+const CRGB mario_pal[] = {
+  {0x00, 0x00, 0x00}, 
+  {0xff, 0x00, 0x4d}, 
+  {0xff, 0xf1, 0xe8}, 
+  {0xab, 0x52, 0x36}, 
+  {0xff, 0xcc, 0xaa}, 
+  {0xff, 0xff, 0x27}, 
+  {0x29, 0xad, 0xff}, 
+  {0xff, 0xa3, 0x00}, 
+  {0x1d, 0x2b, 0x53}, 
+  {0x83, 0x76, 0x9c}, 
+  {0x7e, 0x25, 0x53}, 
+  {0x00, 0xe7, 0x56}
+};
+
+  for( i = 0; i<15; i++)
+  {
+    for (y = 0; y < 8; y++) 
+    {
+      for (x = 0; x < 4; x++) 
+      {
+        idx = mario_map[y+(8*i)][x];
+        p1=idx>>4;
+        p2=idx & 0x0F;
+        leds[XY( 2*x, y,true, false)] = mario_pal[p1];
+        leds[XY( 2*x+1, y, true, false)] = mario_pal[p2];
+        if(p1==1) p1=11;
+        if(p2==1) p2=11;
+        leds[XY( 2*x+8, y,true, false)] = mario_pal[p1];
+        leds[XY( 2*x+9, y, true, false)] = mario_pal[p2];
+      }
+    }
+    FastLED.show();
+    delay(500);
+  }
+}
+
+void matrix() {
+
+}
+ 
 void minecraft() {
   uint8_t i,x,y, idx,p1,p2;
 const CRGB pal[] = {
@@ -157,12 +238,12 @@ const uint8_t creeper[8][4] = {
   0x00, 0x11, 0x11, 0xa0, 
   0x0a, 0x1d, 0x01, 0x00, 
 };
-/*
+
  for(uint8_t i = 0; i<128; i++)
    leds[i]=CRGB(255,0,0);
  FastLED.show();
  delay(500);
-
+/*
  wipeMatrices(); 
  for(uint8_t i = 0; i<128; i++)
    leds[i]=CRGB(0,255,0);
@@ -198,7 +279,7 @@ for(uint8_t i = 0; i<128; i++)
   for (y = 0; y < 8; y++) {
     for (x = 0; x < 8; x++) {
       idx = minecraft_map[y][x];
-      p1,p2;
+ //     p1,p2;
       p1=idx>>4;
       p2=idx & 0x0F;
       leds[XY( 2*x+i, y,true, false)] = pal[p1];
