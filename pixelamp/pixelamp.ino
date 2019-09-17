@@ -48,11 +48,11 @@ CRGBPalette16 Pal;
  * Effects list
  */
 void (*effects[])() = {
+  mario,
   do_noise,
   matrix,
   heliox,
   invader,
-  mario,
   minecraft,
   xyTester,               //#0
   hueRotationEffect,      //#1
@@ -251,8 +251,9 @@ void heliox() {
 
 void mario() {
   uint8_t i,x,y, idx,p1,p2;
+  static uint8_t pos=0;
 
-  for( i = 0; i<15; i++)
+  for( i = 0; i<39; i++)
   {
     for (y = 0; y < 8; y++) 
     {
@@ -261,16 +262,18 @@ void mario() {
         idx = mario_map[y+(8*i)][x];
         p1=idx>>4;
         p2=idx & 0x0F;
-        leds[XY( 2*x, y,true, false)] = mario_pal[p1];
-        leds[XY( 2*x+1, y, true, false)] = mario_pal[p2];
+        leds[XY( 2*x+pos, y,true, false)] = mario_pal[p1];
+        leds[XY( 2*x+1+pos, y, true, false)] = mario_pal[p2];
         if(p1==1) p1=11;
         if(p2==1) p2=11;
-        leds[XY( 2*x+8, y,true, false)] = mario_pal[p1];
-        leds[XY( 2*x+9, y, true, false)] = mario_pal[p2];
+        leds[XY( 2*x+8+pos, y,true, false)] = mario_pal[p1];
+        leds[XY( 2*x+9+pos, y, true, false)] = mario_pal[p2];
       }
     }
     FastLED.show();
     delay(500);
+    pos++;
+    if(pos==15) pos=0;
   }
 }
 
