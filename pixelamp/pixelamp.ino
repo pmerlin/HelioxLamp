@@ -7,8 +7,6 @@
 #include <FastLED.h>
 #include "pixelamp.h"
 
-const uint8_t kMatrixWidth = 16;
-const uint8_t kMatrixHeight = 8;
 uint8_t CentreX =  (kMatrixWidth / 2) - 1;
 uint8_t CentreY = (kMatrixHeight / 2) - 1;
 
@@ -50,9 +48,11 @@ CRGBPalette16 Pal;
  * Effects list
  */
 void (*effects[])() = {
-  heliox,
-  mario,
+  do_noise,
   matrix,
+  heliox,
+  invader,
+  mario,
   minecraft,
   xyTester,               //#0
   hueRotationEffect,      //#1
@@ -73,6 +73,11 @@ void setup() {
 
   //changer cette palette pour avoir des effets super sympas, comme un feu sous l'océan avec OceanColors_p
   Pal = LavaColors_p;
+
+  // MAtrix init
+  for (int8_t col=0; col<kMatrixWidth; col++) 
+    tab[col]=0;
+
 }
 
 void loop() {
@@ -118,6 +123,105 @@ void changeBrightness() {
 /*********************************************************************************************************
  * Effects
  */
+
+// cheap correction with gamma 2.0
+void adjust_gamma() // for do_noise
+{
+  for (uint16_t i = 0; i < NUM_LEDS; i++)
+  {
+    leds[i].r = dim8_video(leds[i].r);
+    leds[i].g = dim8_video(leds[i].g);
+    leds[i].b = dim8_video(leds[i].b);
+  }
+}
+
+//as shown on youtube
+//a noise controlled & modulated by itself
+void do_noise() {
+
+  CRGBPalette16 Pal( pit );
+
+  //modulate the position so that it increases/decreases x
+  //(here based on the top left pixel - it could be any position else)
+  //the factor "2" defines the max speed of the x movement
+  //the "-255" defines the median moving direction
+  x = x + (2 * noise[0][0]) - 255;
+  //modulate the position so that it increases/decreases y
+  //(here based on the top right pixel - it could be any position else)
+  y = y + (2 * noise[kMatrixWidth-1][0]) - 255;
+  //z just in one direction but with the additional "1" to make sure to never get stuck
+  //in case the movement is stopped by a crazy parameter (noise data) combination
+  //(here based on the down left pixel - it could be any position else)
+  z += 1 + ((noise[0][kMatrixHeight-1]) / 4);
+  //set the scaling based on left and right pixel of the middle line
+  //here you can set the range of the zoom in both dimensions
+  scale_x = 8000 + (noise[0][CentreY] * 16);
+  scale_y = 8000 + (noise[kMatrixWidth-1][CentreY] * 16);
+
+  //calculate the noise data
+ // uint8_t layer = 0;
+  for (uint8_t i = 0; i < kMatrixWidth; i++) {
+    uint32_t ioffset = scale_x * (i - CentreX);
+    for (uint8_t j = 0; j < kMatrixHeight; j++) {
+      uint32_t joffset = scale_y * (j - CentreY);
+      uint16_t data = inoise16(x + ioffset, y + joffset, z);
+      // limit the 16 bit results to the interesting range
+      if (data < 11000) data = 11000;
+      if (data > 51000) data = 51000;
+      // normalize
+      data = data - 11000;
+      // scale down that the result fits into a byte
+      data = data / 161;
+      // store the result in the array
+      noise[i][j] = data;
+    }
+  }
+
+  //map the colors
+  for (uint8_t y = 0; y < kMatrixHeight; y++) {
+    for (uint8_t x = 0; x < kMatrixWidth; x++) {
+      //I will add this overlay CRGB later for more colors
+      //it´s basically a rainbow mapping with an inverted brightness mask
+      CRGB overlay = CHSV(noise[y][x], 255, noise[x][y]);
+      //here the actual colormapping happens - note the additional colorshift caused by the down right pixel noise[0][15][15]
+      leds[XY(x, y, false,false)] = ColorFromPalette( Pal, noise[kMatrixWidth-1][kMatrixHeight-1] + noise[x][y]) + overlay;
+    }
+  }
+
+  //make it looking nice
+  adjust_gamma();
+
+  //and show it!
+  FastLED.show();
+}
+
+void invader() {
+  uint8_t x,y, idx,p1,p2;
+  static uint8_t pos=0;
+
+  for( x = 0; x<15; x++)
+    for( y = 0; y<8; y++)
+      leds[XY( x, y,false, false)]=leds[XY( x+1, y,false, false)];
+           
+  for (y = 0; y < 8; y++) 
+  {
+        idx = invader_map[y][pos>>1];
+        if(pos & 0x01 == 1)
+          idx=idx & 0x0F;
+        else
+          idx=idx>>4;
+
+        leds[XY( 15, y,false, false)] = invader_pal[idx];
+  }
+    FastLED.show();
+    delay(500);
+    
+  pos++;
+  if(pos==192) pos=0;
+}
+
+
+
 void heliox() {
   uint8_t x,y, idx,p1,p2;
   static uint8_t pos=0;
@@ -126,26 +230,20 @@ void heliox() {
     for( y = 0; y<8; y++)
       leds[XY( x, y,false, false)]=leds[XY( x+1, y,false, false)];
       
-      
   for (y = 0; y < 8; y++) 
   {
-        idx = heliox_map[y][pos];
-        if(pos & 0x00)
-        {
-          p1=idx>>4;
-          if(p1) p1=14;
-          leds[XY( 15, y,false, false)] = heliox_pal[p1];
-        }
+        idx = heliox_map[y][pos>>1];
+
+        if(pos & 0x01 == 1)
+          idx=idx & 0x0F;
         else
-        {
-          p2=idx & 0x0F;
-          if(p2) p2=14;
-          leds[XY( 15, y,false, false)] = heliox_pal[p2];
-        }
+          idx=idx>>4;
+
+        leds[XY( 15, y,false, false)] = heliox_pal[idx];
   }
     FastLED.show();
     delay(500);
-
+    
   pos++;
   if(pos==41) pos=0;
 }
@@ -153,22 +251,6 @@ void heliox() {
 
 void mario() {
   uint8_t i,x,y, idx,p1,p2;
-
-/*Color of index 6 Mario red 255 0 74(4a) -> 0 231(E7) 86 (56)*/
-const CRGB mario_pal[] = {
-  {0x00, 0x00, 0x00}, 
-  {0xff, 0x00, 0x4d}, 
-  {0xff, 0xf1, 0xe8}, 
-  {0xab, 0x52, 0x36}, 
-  {0xff, 0xcc, 0xaa}, 
-  {0xff, 0xff, 0x27}, 
-  {0x29, 0xad, 0xff}, 
-  {0xff, 0xa3, 0x00}, 
-  {0x1d, 0x2b, 0x53}, 
-  {0x83, 0x76, 0x9c}, 
-  {0x7e, 0x25, 0x53}, 
-  {0x00, 0xe7, 0x56}
-};
 
   for( i = 0; i<15; i++)
   {
@@ -193,6 +275,72 @@ const CRGB mario_pal[] = {
 }
 
 void matrix() {
+{
+  int8_t spawnX;
+  
+  EVERY_N_MILLIS(150) // falling speed
+  {
+    // move code downward
+    // start with lowest row to allow proper overlapping on each column
+    for (int8_t row=kMatrixHeight-1; row>=0; row--)
+    {
+      for (int8_t col=0; col<kMatrixWidth; col++)
+      {
+        if (leds[XY(col, row,false,false)] == CRGB(175,255,175))
+        {
+          leds[XY(col, row, false, false)] = CRGB(27,130,39); // create trail
+          if (row < kMatrixHeight-1) leds[XY(col, row+1, false, false)] = CRGB(175,255,175);
+        }
+      }
+    }
+
+    // fade all leds
+    for(int i = 0; i < NUM_LEDS; i++) {
+      if (leds[i].g != 255) leds[i].nscale8(192); // only fade trail
+    }
+
+    // check for empty screen to ensure code spawn
+    bool emptyScreen = true;
+    for(int i = 0; i < NUM_LEDS; i++) {
+      if (leds[i])
+      {
+        emptyScreen = false;
+        break;
+      }
+    }
+
+    // spawn new falling code
+    if (random8(1) == 0 || emptyScreen) // lower number == more frequent spawns initial 3
+    {
+      do
+      {
+        spawnX = random8(kMatrixWidth);
+        Serial.printf("you have SX: %d, NB: %d tab: %d\n", spawnX, nb, tab[spawnX]  );
+        for (int j=0; j<kMatrixWidth; j++) Serial.printf("%2d ", tab[j]);
+        Serial.printf("\n");
+      }
+      while (nb < kMatrixWidth && tab[spawnX] != 0);
+
+      if (nb < kMatrixWidth && tab[spawnX] ==0)
+      {
+        nb++;      
+        tab[spawnX]=kMatrixHeight;
+        leds[XY(spawnX, 0,false, false)] = CRGB(175,255,175 );
+
+      }
+
+      for (int8_t col=0; col<kMatrixWidth; col++) 
+      {
+        if (tab[col]==1)
+          nb--;
+        if (tab[col]>0)
+          tab[col]-- ;
+      }
+    }
+
+    FastLED.show();
+  }
+}
 
 }
  
