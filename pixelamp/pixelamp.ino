@@ -48,6 +48,7 @@ CRGBPalette16 Pal;
  * Effects list
  */
 void (*effects[])() = {
+  tetris,
   mario,
   heliox,
   matrix,
@@ -69,6 +70,11 @@ void (*effects[])() = {
 
 void setup() {
   Serial.begin(115200);
+#define  PIN_ADDR_A D5
+
+  pinMode(PIN_ADDR_A, OUTPUT);
+  digitalWrite(PIN_ADDR_A, LOW);
+
   FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(Halogen);
   FastLED.setBrightness(brightness);
   FastLED.setDither(DISABLE_DITHER);
@@ -94,12 +100,13 @@ void loop() {
  */
 void changeAnimation() {
   static int oldValue = currentEffect;
+  digitalWrite(PIN_ADDR_A, LOW);
   int potValue = analogRead(POT_ANIM);
 //  Serial.print (potValue); Serial.print ("\n");
   potValue = constrain(potValue, POT_ANIM_MIN, POT_ANIM_MAX);
   int newValue = map(potValue, POT_ANIM_MIN, POT_ANIM_MAX, 0, ARRAY_SIZE(effects)-1);
 
- Serial.printf("%d : %d : %d\n",potValue, newValue, oldValue);
+ Serial.printf("ANI %d : %d : %d\n",potValue, newValue, oldValue);
 
   if (newValue != oldValue) {
     oldValue = newValue;
@@ -110,9 +117,11 @@ void changeAnimation() {
 
 void changeBrightness() {
   static int oldValue = brightness;
-  int potValue = 280; //analogRead(POT_BRIGHTNESS);
+  digitalWrite(PIN_ADDR_A, HIGH);
+  int potValue = analogRead(POT_BRIGHTNESS);
   potValue = constrain(potValue, POT_BRIGHTNESS_MIN, POT_BRIGHTNESS_MAX);
   int newValue = map(potValue, POT_BRIGHTNESS_MIN, POT_BRIGHTNESS_MAX, 0, 255);
+  Serial.printf("BRI %d : %d : %d\n",potValue, newValue, oldValue);
 
   if (newValue != oldValue) {
     oldValue = newValue;
@@ -248,6 +257,32 @@ void heliox() {
     
   pos++;
   if(pos==41) pos=0;
+}
+
+void tetris() {
+  uint8_t x,y, idx,p1,p2;
+  static uint8_t anim=0;
+
+    for (y = 0; y < 8; y++) 
+    {
+      for (x = 0; x < 4; x++) 
+      {
+        idx = tetris_map[y+(8*anim)][x];
+        p1=idx>>4;
+        p2=idx & 0x0F;
+        leds[XY( 2*x, y,true, false)] = tetris_pal[p1];
+        leds[XY( 2*x+1, y, true, false)] = tetris_pal[p2];
+        if(p1==1) p1=11;
+        if(p2==1) p2=11;
+        leds[XY( 2*x+8, y,true, false)] = tetris_pal[p1];
+        leds[XY( 2*x+9, y, true, false)] = tetris_pal[p2];
+      }
+    }
+    FastLED.show();
+    delay(500);
+    anim++;
+    if(anim==91) anim=0;
+ 
 }
 
 
