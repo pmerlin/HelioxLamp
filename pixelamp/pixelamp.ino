@@ -138,6 +138,77 @@ void changeBrightness() {
 ////////////////////////////////////////////
 // INVADER2
 
+
+void shoot()
+{
+    static int d = 0, p = 5, dir = 1 ;
+    static int tirX[4], tirY[4];
+    static bool tir[4] = {false, false, false, false};
+
+
+      
+
+    if (++d == 32)
+    {
+
+        for (int y = 0; y < 4; y++)
+          if (tir[y] == true)
+          {
+              tirY[y]--;
+              if (tirY[y] == -1)
+                  tir[y] = false;
+          }
+
+        if (p == 2)
+        {
+            tirX[0] = p + 1;
+            tirY[0] = 5;
+            tir[0] = true;
+        }
+        if (p == 13)
+        {
+            tirX[1] = p + 1;
+            tirY[1] = 5;
+            tir[1] = true;
+        }
+        if (p == 9)
+        {
+            tirX[2] = p + 1;
+            tirY[2] = 5;
+            tir[2] = true;
+        }
+        if (p == 5)
+        {
+            tirX[3] = p + 1;
+            tirY[3] = 5;
+            tir[3] = true;
+        }
+
+        if (dir == 1 && p == 13)
+            dir = -1;
+        if (dir == -1 && p == 0)
+            dir = 1;
+
+        if (dir == 1 && p < 13)
+            p++;
+        if (dir == -1 && p > 0)
+            p--;
+
+        d = 0;
+    }
+
+    leds[XY(p, 7,false,false)] = CRGB(255, 255, 255);
+    leds[XY(p + 1, 7,false,false)] = CRGB(255, 255, 255);
+    leds[XY(p + 2, 7,false,false)] = CRGB(255, 255, 255);
+    leds[XY(p + 1, 6,false,false)] = CRGB(255, 255, 255);
+
+    for (int y = 0; y < 4; y++)
+      if (tir[y] == true)
+            leds[XY(tirX[y], tirY[y], false,false)] = CRGB(128, 128, 255);
+
+
+}
+
 void displayImage(uint64_t image, int c)
 {
    int y;
@@ -146,7 +217,7 @@ void displayImage(uint64_t image, int c)
   /*
     static int a = 2, b = 0, d = 0, p = 5 ;
     static int tirX[4], tirY[4];
- 
+
     static bool tir[4] = {false, false, false, false};
     if (++d == 32)
     {
@@ -253,48 +324,30 @@ void DrawOneFrame( byte startHue8, int8_t yHueDelta8, int8_t xHueDelta8) {
     byte pixelHue = lineStartHue;      
     for( byte x = 0; x < kMatrixWidth; x++) {
       pixelHue += xHueDelta8;
-      leds[XY(x, y, true, true)]  = CHSV( pixelHue, 255, 255);
+      leds[XY(x, y, true, true)]  = CHSV( pixelHue, 200, 200);
     }
   }
 }
 
-void DrawOneFrameInv(byte startHue8, int8_t yHueDelta8, int8_t xHueDelta8)
-{
-    byte lineStartHue = startHue8;
-    for (byte y = 0; y < kMatrixHeight; y++)
-    {
-        lineStartHue += yHueDelta8;
-        byte pixelHue = lineStartHue;
-        for (byte x = 0; x < kMatrixWidth; x++)
-        {
-            pixelHue += xHueDelta8;
-            leds[XY(x, y, true,true)] = CHSV(pixelHue, 200, 200);
-        }
-    }
-}
-
 void hueRotationEffect() {
-  static int frame=0;
   uint32_t ms = millis();
   int32_t yHueDelta32 = ((int32_t)cos16( ms * (27/1) ) * (350 / kMatrixWidth));
   int32_t xHueDelta32 = ((int32_t)cos16( ms * (39/1) ) * (310 / kMatrixHeight));
-//  DrawOneFrame( ms / 65536, yHueDelta32 / 32768, xHueDelta32 / 32768);
-  DrawOneFrame(frame, 8, 16);
-  frame++;
-//  if(++frame==352) frame=0;
+  DrawOneFrame( ms / 65536, yHueDelta32 / 32768, xHueDelta32 / 32768);
   FastLED.show();
 }
 
 void invader2()
 {
     uint32_t ms = millis();
-//    int32_t yHueDelta32 = ((int32_t)cos16(ms * (27 / 1)) * (350 / kMatrixWidth));
-//    int32_t xHueDelta32;
     static int nbi=0 , col=0;
     static bool way = true;
 
-    DrawOneFrameInv(col, 8, 16);
-    displayImage(INVADER[nbi], col);
+    DrawOneFrame(col, 8, 16 );
+    if(nbi&0x01)
+      displayImage(INVADER[nbi>>1], col);
+    else
+      shoot();
     FastLED.show();
 
     if (way)
@@ -307,7 +360,7 @@ void invader2()
     {
       if(--col==0) {
         way=true; 
-      if(++nbi==IMAGES_LEN) nbi=0;
+      if(++nbi==IMAGES_LEN<<1) nbi=0;
       }
     }
 
