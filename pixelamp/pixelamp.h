@@ -84,9 +84,10 @@ void firepit();
 void mario();
 void heliox();
 void invader();
+void invader2();
 void tetris();
 void do_noise();
-void nothing();
+void all();
 
 /************************************************************************
  * Helper functions                                                     *
@@ -1432,6 +1433,27 @@ const uint8_t tetris_map[728][4] = {
   0x00, 0x00, 0x00, 0x00, 
   0x00, 0x00, 0x00, 0x00, 
 };
+
+
+const uint64_t INVADER[] = {
+    0xc38199a5ffdb7e24,
+    0x2499bdff5a7e2442,
+    0x244224ffdb7e3c18,
+    0x815a24ff99ff7e18,
+    0xc399bdffdbbd1824,
+    0x42e7ffa5ff7e1800,
+    0x6624a5bdff7e5a24,
+    0x6681423cff997e18,
+    0x81422418ff997e3c,
+    0xa55a24ff5a3c1800,
+    0x81427effdbbd9924,
+    0x4224183c5a5a3c42,
+    0x18a5a5bddb3c1824,
+    0x3c42425aff997e18,
+    0xaa55ffff99ff7e24,
+    0x6681817edb5a7e81,
+    0x244281427ebd7e18};
+const int IMAGES_LEN = sizeof(INVADER) / 8;
 
 
 /* EMPTY SPRITE

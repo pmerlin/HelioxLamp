@@ -48,23 +48,22 @@ CRGBPalette16 Pal;
  * Effects list
  */
 void (*effects[])() = {
+  invader2,
   tetris,
   mario,
   heliox,
   matrix,
-
-  do_noise,
-
   invader,
   minecraft,
-  xyTester,               //#0
-  hueRotationEffect,      //#1
   animatePacChase,       //#2, pink
   animatePacman,
+  hueRotationEffect,      //#1
+  do_noise,
   hue,
   fireworks,
+  xyTester,               //#0
   firepit,
-  nothing
+  all
 };
 
 
@@ -134,6 +133,190 @@ void changeBrightness() {
 /*********************************************************************************************************
  * Effects
  */
+
+ 
+////////////////////////////////////////////
+// INVADER2
+
+void displayImage(uint64_t image, int c)
+{
+   int y;
+   static  int posi = 0, b = 0, p = 5, dir = 1;
+   
+  /*
+    static int a = 2, b = 0, d = 0, p = 5 ;
+    static int tirX[4], tirY[4];
+ 
+    static bool tir[4] = {false, false, false, false};
+    if (++d == 32)
+    {
+        if (p == 2)
+        {
+            tirX[0] = p + 1;
+            tirY[0] = 13;
+            tir[0] = true;
+        }
+        if (p == 13)
+        {
+            tirX[1] = p + 1;
+            tirY[1] = 13;
+            tir[1] = true;
+        }
+        if (p == 9)
+        {
+            tirX[2] = p + 1;
+            tirY[2] = 13;
+            tir[2] = true;
+        }
+        if (p == 5)
+        {
+            tirX[3] = p + 1;
+            tirY[3] = 13;
+            tir[3] = true;
+        }
+
+        if (dir == 1 && p == 13)
+            dir = -1;
+        if (dir == -1 && p == 0)
+            dir = 1;
+
+        if (dir == 1 && p < 13)
+            p++;
+        if (dir == -1 && p > 0)
+            p--;
+
+        if (a < 6 && b == 0)
+            a++;
+        if (a == 6 && b < 4)
+            b++;
+        if (a > 2 && b == 4)
+            a--;
+        if (a == 2 && b > 0)
+            b--;
+
+        for (d = 0; d < 4; d++)
+            if (tir[d] == true)
+            {
+                tirY[d]--;
+                if (tirY[d] == 8)
+                    tir[d] = false;
+            }
+
+        d = 0;
+    }
+
+    if (c > 255)
+        c = 255;
+*/
+        
+    for (y = 0; y < 8; y++)
+    {
+        byte row = (image >> y * 8) & 0xFF;
+        for (int x = 0; x < 8; x++)
+        {
+            if (bitRead(row, x))
+            {
+//                c=c/3;
+                if(c>255) c=255;
+                leds[XY(x + posi/50, y, true, true)] = CRGB(c, c, c);
+            }
+        }
+    }
+    
+    if (dir==1){
+      posi ++;
+      if (posi == 400) dir = -1;
+    }
+    else if (dir == -1) {
+      posi--;
+      if (posi == 0) dir = 1;
+    }
+      
+/*    
+    leds[XY(p, 15)] = CRGB(255, 255, 255);
+    leds[XY(p + 1, 15)] = CRGB(255, 255, 255);
+    leds[XY(p + 2, 15)] = CRGB(255, 255, 255);
+    leds[XY(p + 1, 14)] = CRGB(255, 255, 255);
+
+    for (y = 0; y < 4; y++)
+        if (tir[y] == true)
+        {
+            leds[XY(tirX[y], tirY[y])] = CRGB(255, 255, 255);
+        }
+        */
+}
+
+void DrawOneFrame( byte startHue8, int8_t yHueDelta8, int8_t xHueDelta8) {
+  byte lineStartHue = startHue8;
+  for( byte y = 0; y < kMatrixHeight; y++) {
+    lineStartHue += yHueDelta8;
+    byte pixelHue = lineStartHue;      
+    for( byte x = 0; x < kMatrixWidth; x++) {
+      pixelHue += xHueDelta8;
+      leds[XY(x, y, true, true)]  = CHSV( pixelHue, 255, 255);
+    }
+  }
+}
+
+void DrawOneFrameInv(byte startHue8, int8_t yHueDelta8, int8_t xHueDelta8)
+{
+    byte lineStartHue = startHue8;
+    for (byte y = 0; y < kMatrixHeight; y++)
+    {
+        lineStartHue += yHueDelta8;
+        byte pixelHue = lineStartHue;
+        for (byte x = 0; x < kMatrixWidth; x++)
+        {
+            pixelHue += xHueDelta8;
+            leds[XY(x, y, true,true)] = CHSV(pixelHue, 200, 200);
+        }
+    }
+}
+
+void hueRotationEffect() {
+  static int frame=0;
+  uint32_t ms = millis();
+  int32_t yHueDelta32 = ((int32_t)cos16( ms * (27/1) ) * (350 / kMatrixWidth));
+  int32_t xHueDelta32 = ((int32_t)cos16( ms * (39/1) ) * (310 / kMatrixHeight));
+//  DrawOneFrame( ms / 65536, yHueDelta32 / 32768, xHueDelta32 / 32768);
+  DrawOneFrame(frame, 8, 16);
+  frame++;
+//  if(++frame==352) frame=0;
+  FastLED.show();
+}
+
+void invader2()
+{
+    uint32_t ms = millis();
+//    int32_t yHueDelta32 = ((int32_t)cos16(ms * (27 / 1)) * (350 / kMatrixWidth));
+//    int32_t xHueDelta32;
+    static int nbi=0 , col=0;
+    static bool way = true;
+
+    DrawOneFrameInv(col, 8, 16);
+    displayImage(INVADER[nbi], col);
+    FastLED.show();
+
+    if (way)
+    {
+      if(++col==400) {
+        way=false; 
+      }
+    }
+    else
+    {
+      if(--col==0) {
+        way=true; 
+      if(++nbi==IMAGES_LEN) nbi=0;
+      }
+    }
+
+
+}    
+
+
+////////////////////////////////////////////
+
 
 // cheap correction with gamma 2.0
 void adjust_gamma() // for do_noise
@@ -480,26 +663,6 @@ void xyTester() {
   }
 }
 
-void hueRotationEffect() {
-  uint32_t ms = millis();
-  int32_t yHueDelta32 = ((int32_t)cos16( ms * (27/1) ) * (350 / kMatrixWidth));
-  int32_t xHueDelta32 = ((int32_t)cos16( ms * (39/1) ) * (310 / kMatrixHeight));
-  DrawOneFrame( ms / 65536, yHueDelta32 / 32768, xHueDelta32 / 32768);
-  FastLED.show();
-}
-
-void DrawOneFrame( byte startHue8, int8_t yHueDelta8, int8_t xHueDelta8) {
-  byte lineStartHue = startHue8;
-  for( byte y = 0; y < kMatrixHeight; y++) {
-    lineStartHue += yHueDelta8;
-    byte pixelHue = lineStartHue;      
-    for( byte x = 0; x < kMatrixWidth; x++) {
-      pixelHue += xHueDelta8;
-      leds[XY(x, y, true, true)]  = CHSV( pixelHue, 255, 255);
-    }
-  }
-}
-
 void animatePacChase() {  
   static boolean openMouth = true;
   
@@ -698,8 +861,15 @@ void firepit() {
 
 }
 
-void nothing() {
-  wipeMatrices();
+#define DELAY 100
+void all() {
+  static uint8_t cur=0, i=0;
+   
+  effects[cur]();
+  i++;
+  if ( (cur<8 && i==DELAY) || (cur>=8 && i==DELAY<<1) ) {cur ++; i=0; wipeMatrices(); }
+ 
+  if (cur == sizeof (effects)-1 ) cur=0;
 }
 
 
