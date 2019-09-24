@@ -412,7 +412,7 @@ void heliox() {
     delay(500);
     
   pos++;
-  if(pos==41) pos=0;
+  if(pos==44) pos=0;
 }
 
 void tetris() {
@@ -471,7 +471,27 @@ void mario() {
 }
 
 void matrix() {
-{
+  uint8_t x,y, idx,p1,p2;
+  static uint8_t pos=0, anim=0;
+
+    for (y = 0; y < 8; y++) 
+    {
+      for (x = 0; x < 8; x++) 
+      {
+        idx = matrix_map[y+(8*anim)][x];
+        p1=idx>>4;
+        p2=idx & 0x0F;
+        leds[XY( 2*x, y,true, false)] = matrix_pal[p1];
+        leds[XY( 2*x+1, y, true, false)] = matrix_pal[p2];
+      }
+    }
+    FastLED.show();
+    delay(50);
+    anim++;
+    if(anim==32) anim=0;
+/*
+
+  
   int8_t spawnX;
   
   EVERY_N_MILLIS(150) // falling speed
@@ -537,7 +557,7 @@ void matrix() {
     FastLED.show();
   }
 }
-
+*/
 }
  
 void minecraft() {
