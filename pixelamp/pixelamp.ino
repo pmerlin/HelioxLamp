@@ -53,6 +53,7 @@ void (*effects[])() = {
   mario,
   heliox,
   matrix,
+  matrix2,
   invader,
   minecraft,
   animatePacChase,       //#2, pink
@@ -489,9 +490,9 @@ void matrix() {
     delay(50);
     anim++;
     if(anim==32) anim=0;
-/*
+}
 
-  
+void matrix2() {
   int8_t spawnX;
   
   EVERY_N_MILLIS(150) // falling speed
@@ -556,8 +557,6 @@ void matrix() {
 
     FastLED.show();
   }
-}
-*/
 }
  
 void minecraft() {

@@ -78,6 +78,7 @@ void animatePacChase();
 void animatePacman();
 void minecraft();
 void matrix();
+void matrix2();
 void hue();
 void fireworks();
 void firepit();
@@ -743,13 +744,13 @@ const  uint8_t minecraftpic_map[8][54]= {
 const CRGB tetris_pal[] = {
   {0x00, 0x00, 0x00}, /*Color of index 0*/ //noir
   {0x00, 0x80, 0x00}, /*Color of index 1*/ //vert 5
-  {0x81, 0x00, 0x81}, /*Color of index 2*/ // violet 7 
-  {0xff, 0xff, 0x00}, /*Color of index 3*/ //jaune 3
-  {0xff, 0x00, 0x00}, /*Color of index 4*/ // rouge 1
-  {0xff, 0x66, 0x00}, /*Color of index 5*/ //orange 2
-  {0xff, 0x96, 0xC8}, /*Color of index 6*/ // rose 4
-  {0x00, 0x00, 0xff}, /*Color of index 7*/ //bleu 6
-
+  {0xff, 0x00, 0x00}, /*Color of index 2*/ // rouge 1
+  {0xff, 0x66, 0x00}, /*Color of index 3*/ //orange 2
+  {0x00, 0xff, 0xff}, /*Color of index 4*/ //bleu clair 6
+  {0x00, 0x00, 0xff}, /*Color of index 5*/ // bleu rose {0xff, 0x96, 0xC8} 4
+  {0xff, 0xff, 0x00}, /*Color of index 6*/ //jaune 3 
+  {0xA0, 0x00, 0xF1}, /*Color of index 7*/ // violet 7
+  
 };
 
 const uint8_t tetris_map[728][4] = { 
