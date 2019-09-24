@@ -213,73 +213,7 @@ void displayImage(uint64_t image, int c)
 {
    int y;
    static  int posi = 0, b = 0, p = 5, dir = 1;
-   
-  /*
-    static int a = 2, b = 0, d = 0, p = 5 ;
-    static int tirX[4], tirY[4];
-
-    static bool tir[4] = {false, false, false, false};
-    if (++d == 32)
-    {
-        if (p == 2)
-        {
-            tirX[0] = p + 1;
-            tirY[0] = 13;
-            tir[0] = true;
-        }
-        if (p == 13)
-        {
-            tirX[1] = p + 1;
-            tirY[1] = 13;
-            tir[1] = true;
-        }
-        if (p == 9)
-        {
-            tirX[2] = p + 1;
-            tirY[2] = 13;
-            tir[2] = true;
-        }
-        if (p == 5)
-        {
-            tirX[3] = p + 1;
-            tirY[3] = 13;
-            tir[3] = true;
-        }
-
-        if (dir == 1 && p == 13)
-            dir = -1;
-        if (dir == -1 && p == 0)
-            dir = 1;
-
-        if (dir == 1 && p < 13)
-            p++;
-        if (dir == -1 && p > 0)
-            p--;
-
-        if (a < 6 && b == 0)
-            a++;
-        if (a == 6 && b < 4)
-            b++;
-        if (a > 2 && b == 4)
-            a--;
-        if (a == 2 && b > 0)
-            b--;
-
-        for (d = 0; d < 4; d++)
-            if (tir[d] == true)
-            {
-                tirY[d]--;
-                if (tirY[d] == 8)
-                    tir[d] = false;
-            }
-
-        d = 0;
-    }
-
-    if (c > 255)
-        c = 255;
-*/
-        
+           
     for (y = 0; y < 8; y++)
     {
         byte row = (image >> y * 8) & 0xFF;
@@ -287,7 +221,6 @@ void displayImage(uint64_t image, int c)
         {
             if (bitRead(row, x))
             {
-//                c=c/3;
                 if(c>255) c=255;
                 leds[XY(x + posi/50, y, true, true)] = CRGB(c, c, c);
             }
@@ -302,19 +235,6 @@ void displayImage(uint64_t image, int c)
       posi--;
       if (posi == 0) dir = 1;
     }
-      
-/*    
-    leds[XY(p, 15)] = CRGB(255, 255, 255);
-    leds[XY(p + 1, 15)] = CRGB(255, 255, 255);
-    leds[XY(p + 2, 15)] = CRGB(255, 255, 255);
-    leds[XY(p + 1, 14)] = CRGB(255, 255, 255);
-
-    for (y = 0; y < 4; y++)
-        if (tir[y] == true)
-        {
-            leds[XY(tirX[y], tirY[y])] = CRGB(255, 255, 255);
-        }
-        */
 }
 
 void DrawOneFrame( byte startHue8, int8_t yHueDelta8, int8_t xHueDelta8) {
@@ -622,43 +542,33 @@ void matrix() {
  
 void minecraft() {
   uint8_t x,y, idx,p1,p2;
-  static uint8_t pos=0, anim=0;
+  static uint8_t pos=0;
+
+  for( x = 0; x<15; x++)
+    for( y = 0; y<8; y++)
+      leds[XY( x, y,false, false)]=leds[XY( x+1, y,false, false)];
+      
+  for (y = 0; y < 8; y++) 
+  {
+        idx = minecraftpic_map[y][pos>>1];
+
+        if(pos & 0x01 == 1)
+          idx=idx & 0x0F;
+        else
+          idx=idx>>4;
+
+        leds[XY( 15, y,false, false)] = minecraftpic_pal[idx];
+  }
+    FastLED.show();
+    delay(500);
+    
+  pos++;
+  if(pos==108) pos=0;
+
 /*
- for(uint8_t i = 0; i<128; i++)
-   leds[i]=CRGB(255,0,0);
- FastLED.show();
- delay(500);
+  uint8_t x,y, idx,p1,p2;
+  static uint8_t pos=0, anim=0;
 
- wipeMatrices(); 
- for(uint8_t i = 0; i<128; i++)
-   leds[i]=CRGB(0,255,0);
- FastLED.show();
- delay(5000);
-
- wipeMatrices(); 
-for(uint8_t i = 0; i<128; i++)
-   leds[i]=CRGB(0,0,255);
- FastLED.show();
- delay(5000);
-
- wipeMatrices(); 
- for(uint8_t i = 0; i<128; i++)
-   leds[i]=pal[i/8];
- FastLED.show();
- delay(5000);
- 
- wipeMatrices(); 
- leds[XY(0,0,false,false)]=pal[0];
- leds[XY(0,1,false,false)]=pal[1];
- leds[XY(1,1,false,false)]=pal[1];
- leds[XY(0,2,false,false)]=pal[2];
- leds[XY(1,2,false,false)]=pal[2];
- leds[XY(2,2,false,false)]=pal[2];
- FastLED.show();
- delay(5000);
-
- wipeMatrices(); 
- */
 
  if(anim==0)
  {
@@ -679,10 +589,10 @@ for(uint8_t i = 0; i<128; i++)
       idx = creeper[y][x];
       p1=idx>>4;
       p2=idx & 0x0F;
-      leds[XY( 2*x  +(15-pos), y,true, false)] = pal[p1];
-      leds[XY( 2*x+1+(15-pos), y, true, false)] = pal[p2];
-      leds[XY( 2*x+(23-pos), y,true, false)] = pal[p1];
-      leds[XY( 2*x+1+(23-pos), y, true, false)] = pal[p2];
+      leds[XY( 2*x  +(pos), y,true, false)] = pal[p1];
+      leds[XY( 2*x+1+(pos), y, true, false)] = pal[p2];
+      leds[XY( 2*x+(pos+8), y,true, false)] = pal[p1];
+      leds[XY( 2*x+1+(pos+8), y, true, false)] = pal[p2];
 //      Serial.printf (" %#x  %#x ",p1, p2); 
     }
   }
@@ -693,6 +603,7 @@ for(uint8_t i = 0; i<128; i++)
   
   FastLED.show();
   delay(500);
+  */
 }
  
 void xyTester() {
