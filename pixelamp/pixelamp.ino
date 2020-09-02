@@ -70,11 +70,18 @@ void (*effects[])() = {
 
 void setup() {
   Serial.begin(115200);
-#define  PIN_ADDR_A D5
 
+  pinMode(POT_ANIM1,INPUT_PULLUP);
+  pinMode(POT_ANIM2,INPUT_PULLUP);
+  timeanimA=millis();
+  lastanimA=digitalRead(POT_ANIM1);
+
+
+/*
+#define  PIN_ADDR_A D5
   pinMode(PIN_ADDR_A, OUTPUT);
   digitalWrite(PIN_ADDR_A, LOW);
-
+*/
   FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(Halogen);
   FastLED.setBrightness(brightness);
   FastLED.setDither(DISABLE_DITHER);
@@ -99,8 +106,42 @@ void loop() {
  * Controls
  */
 void changeAnimation() {
-  static int oldValue = currentEffect;
-  digitalWrite(PIN_ADDR_A, LOW);
+//  static int oldValue = currentEffect;
+
+  animA = digitalRead(POT_ANIM1);
+
+  if( animA != lastanimA ){ 
+    // controle du temps pour eviter des erreurs 
+//    if( abs(millis() - timeanimA) > 50 )
+    {
+      // Si B different de l'ancien état de A alors
+      if(digitalRead(POT_ANIM2) != lastanimA){
+        Serial.println("Moins");
+        if (currentEffect>0) 
+          currentEffect--;
+        else
+          currentEffect=ARRAY_SIZE(effects)-1;
+        wipeMatrices();
+      }
+      else{
+        Serial.println("plus");
+        if ( currentEffect < ARRAY_SIZE(effects)-1) 
+          currentEffect++;
+        else
+          currentEffect=0;
+        wipeMatrices(); 
+      }
+      // memorisation du temps pour A
+      timeanimA = millis();
+    } 
+    // memorisation de l'état de A
+    lastanimA = animA ;
+    
+    //affichage du compteur
+    Serial.print("currentEffect :");
+    Serial.println(currentEffect);
+  }
+/*  
   int potValue = analogRead(POT_ANIM);
 //  Serial.print (potValue); Serial.print ("\n");
   potValue = constrain(potValue, POT_ANIM_MIN, POT_ANIM_MAX);
@@ -113,15 +154,16 @@ void changeAnimation() {
     currentEffect = newValue;
     wipeMatrices();
   }
+*/
 }
 
 void changeBrightness() {
   static int oldValue = brightness;
-  digitalWrite(PIN_ADDR_A, HIGH);
+//  digitalWrite(PIN_ADDR_A, HIGH);
   int potValue = analogRead(POT_BRIGHTNESS);
   potValue = constrain(potValue, POT_BRIGHTNESS_MIN, POT_BRIGHTNESS_MAX);
   int newValue = map(potValue, POT_BRIGHTNESS_MIN, POT_BRIGHTNESS_MAX, 0, 255);
-  Serial.printf("BRI %d : %d : %d\n",potValue, newValue, oldValue);
+//  Serial.printf("BRI %d : %d : %d\n",potValue, newValue, oldValue);
 
   if (newValue != oldValue) {
     oldValue = newValue;

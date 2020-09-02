@@ -21,7 +21,7 @@ DEFINE_GRADIENT_PALETTE( pit ) {
 // end noise
 
 #define NUM_LEDS    (kMatrixWidth * kMatrixHeight)
-#define LED_PIN     D6
+#define LED_PIN     D5
 #define COLOR_ORDER GRB
 #define CHIPSET     WS2812
 
@@ -60,9 +60,18 @@ template <uint32_t N> struct Sprite {
 /************************************************************************
  * Controls                                                             *
  ************************************************************************/
-#define POT_ANIM              A0
+#define POT_ANIM1              D6
+#define POT_ANIM2              D7
+int compteur = 0 ;
+bool animA ;
+bool lastanimA ;
+long unsigned timeanimA ;
+
+/*
 #define POT_ANIM_MIN          10
 #define POT_ANIM_MAX          1024
+*/
+
 #define POT_BRIGHTNESS        A0
 #define POT_BRIGHTNESS_MIN    10
 #define POT_BRIGHTNESS_MAX    1025
