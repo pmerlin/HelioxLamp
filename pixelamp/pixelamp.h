@@ -7,6 +7,7 @@
 // const uint8_t kMatrixHeight = 8;
 #define kMatrixWidth  16
 #define kMatrixHeight 8
+#define NUM_LEDS  (kMatrixHeight*kMatrixWidth)
 
 //begin do_noise
  
@@ -98,6 +99,9 @@ void invader2();
 void tetris();
 void do_noise();
 void all();
+void fredplasma();
+void pacifica_loop();
+void circus_marque();
 
 /************************************************************************
  * Helper functions                                                     *
