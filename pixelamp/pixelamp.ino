@@ -48,6 +48,13 @@ CRGBPalette16 Pal;
  * Effects list
  */
 void (*effects[])() = {
+  MerryGoOn,
+  tournesol,
+  flower,
+//  pulse,
+  MatrixSwirl,
+  crossfade,
+  soulmate1,
   circus_marque,
   pacifica_loop,
   fredplasma,
@@ -70,9 +77,25 @@ void (*effects[])() = {
   all
 };
 
+void fixPal(CRGB pal[], uint8_t maxPal)
+{
+    int i;
+    uint8_t t;
+
+  for (i = 0; i < maxPal; i++) // 11
+  {
+    t = pal[i][0];
+    pal[i][0] = pal[i][2];
+    pal[i][2] = t;
+  }
+}
+
 
 void setup() {
   Serial.begin(115200);
+  fixPal(flower_pal, sizeof(flower_pal)/sizeof(CRGB)); //7
+  fixPal(tournesol_pal, sizeof(tournesol_pal)/sizeof(CRGB)); //7
+  fixPal(MerryGoOn_pal, sizeof(MerryGoOn_pal)/sizeof(CRGB)); //7
 
   pinMode(POT_ANIM1,INPUT_PULLUP);
   pinMode(POT_ANIM2,INPUT_PULLUP);
@@ -485,6 +508,74 @@ void tetris() {
     anim++;
     if(anim==91) anim=0;
  
+}
+
+void flower() {
+  uint8_t x,y, idx,p1,p2;
+  static uint8_t anim=0;
+
+    for (y = 0; y < 8; y++) 
+    {
+      for (x = 0; x < 8; x++) 
+      {
+        idx = flower_map[y+(8*anim)][x];
+        p1=idx>>4;
+        p2=idx & 0x0F;
+        leds[XY( 2*x, y,true, false)] = flower_pal[p1];
+        leds[XY( 2*x+1, y,true, false)] = flower_pal[p2];
+      }
+    }
+    FastLED.show();
+    delay(500);
+    anim++;
+    if(anim==18) anim=0;
+ 
+}
+
+void MerryGoOn() {
+  uint8_t x,y, idx,p1,p2;
+  static uint8_t anim=0;
+
+    for (y = 0; y < 8; y++) 
+    {
+      for (x = 0; x < 8; x++) 
+      {
+        idx = MerryGoOn_map[y+(8*anim)][x];
+        p1=idx>>4;
+        p2=idx & 0x0F;
+        leds[XY( 2*x, y,true, false)] = MerryGoOn_pal[p1];
+        leds[XY( 2*x+1, y,true, false)] = MerryGoOn_pal[p2];
+      }
+    }
+    FastLED.show();
+    delay(500);
+    anim++;
+    if(anim==4) anim=0;
+ 
+}
+
+
+
+void tournesol() {
+  uint8_t x,y, idx,p1,p2;
+  static uint8_t anim=0;
+
+    for (y = 0; y < 8; y++) 
+    {
+      for (x = 0; x < 8; x++) 
+      {
+        idx = tournesol_map[y+(8*anim)][x];
+        p1=idx>>4;
+        p2=idx & 0x0F;
+        leds[XY( 2*x, y,true, false)] = tournesol_pal[p1];
+        leds[XY( 2*x+1, y,true, false)] = tournesol_pal[p2];
+      }
+    }
+    FastLED.show();
+    delay(500);
+    anim++;
+    if(anim==16) anim=0;
+
 }
 
 
@@ -1263,3 +1354,242 @@ void circus_marque()
   
   FastLED.delay(10);
 }
+
+
+/////////////////////////////////////////////
+
+float offsetX = 0;
+float offsetY = 0;
+uint8_t hue2 = 0;
+
+void soulmate1() 
+{
+  offsetX = beatsin16(6, -180, 180);
+  offsetY = beatsin16(6, -180, 180, 12000);
+
+  EVERY_N_MILLISECONDS(10) {
+    hue2++;
+  }
+
+  for (int x = 0; x < kMatrixHeight; x++) {
+    for (int y = 0; y < kMatrixWidth; y++) {
+      int16_t index = XY(y, x);
+
+      if (index < 0) break;
+
+      float hue2 = x * beatsin16(10, 1, 10) + offsetY;
+      leds[index] = CHSV(hue2, 200, sin8(x * 30 + offsetX));
+      hue2 = y * 3 + offsetX;
+      leds[index] += CHSV(hue2, 200, sin8(y * 30 + offsetY));
+    }
+  }
+  FastLED.show();
+}
+
+///////////////////////////////////////////////////
+
+const uint8_t kSquareWidth = 8;
+const uint8_t kBorderWidth = 1;
+
+void MatrixSwirl()
+{
+  // Apply some blurring to whatever's already on the matrix
+  // Note that we never actually clear the matrix, we just constantly
+  // blur it repeatedly.  Since the blurring is 'lossy', there's
+  // an automatic trend toward black -- by design.
+  uint8_t blurAmount = dim8_raw( beatsin8(3,64,192) );
+  blur2d( leds, kSquareWidth, kSquareWidth, blurAmount);
+
+  // Use two out-of-sync sine waves
+  uint8_t  i = beatsin8(  91, kBorderWidth, kSquareWidth-kBorderWidth);
+  uint8_t  j = beatsin8( 109, kBorderWidth, kSquareWidth-kBorderWidth);
+  uint8_t  k = beatsin8(  73, kBorderWidth, kSquareWidth-kBorderWidth);
+  
+  // The color of each point shifts over time, each at a different speed.
+  uint16_t ms = millis();  
+  leds[XY( i, j)] += CHSV( ms / 29, 200, 255);
+  leds[XY( j, k)] += CHSV( ms / 41, 200, 255);
+  leds[XY( k, i)] += CHSV( ms / 73, 200, 255);
+
+  for (int a=0; a<64; a++) leds[a+64]=leds[a];
+  
+  FastLED.show();
+  FastLED.delay(50);
+}
+
+//////////////////////////////////////////////////////////////////
+
+#define UPDATES_PER_SECOND 100
+
+CRGBPalette16 currentPalette( CRGB::Black);
+CRGBPalette16 targetPalette( PartyColors_p );
+
+void crossfade()
+{
+  ChangePalettePeriodically();
+
+  // Crossfade current palette slowly toward the target palette
+  //
+  // Each time that nblendPaletteTowardPalette is called, small changes
+  // are made to currentPalette to bring it closer to matching targetPalette.
+  // You can control how many changes are made in each call:
+  //   - the default of 24 is a good balance
+  //   - meaningful values are 1-48.  1=veeeeeeeery slow, 48=quickest
+  //   - "0" means do not change the currentPalette at all; freeze
+  
+  uint8_t maxChanges = 24; 
+  nblendPaletteTowardPalette( currentPalette, targetPalette, maxChanges);
+
+
+  static uint8_t startIndex = 0;
+  startIndex = startIndex + 1; /* motion speed */
+  FillLEDsFromPaletteColors( startIndex);
+
+  FastLED.show();
+  FastLED.delay(1000 / UPDATES_PER_SECOND);
+}
+
+void FillLEDsFromPaletteColors( uint8_t colorIndex)
+{
+  uint8_t brightness = 255;
+  
+  for( int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = ColorFromPalette( currentPalette, colorIndex + sin8(i*16), brightness);
+    colorIndex += 3;
+  }
+}
+
+
+void ChangePalettePeriodically()
+{
+  uint8_t secondHand = (millis() / 1000) % 60;
+  static uint8_t lastSecond = 99;
+  
+  if( lastSecond != secondHand) {
+    lastSecond = secondHand;
+    CRGB p = CHSV( HUE_PURPLE, 255, 255);
+    CRGB g = CHSV( HUE_GREEN, 255, 255);
+    CRGB b = CRGB::Black;
+    CRGB w = CRGB::White;
+    if( secondHand ==  0)  { targetPalette = RainbowColors_p; }
+    if( secondHand == 10)  { targetPalette = CRGBPalette16( g,g,b,b, p,p,b,b, g,g,b,b, p,p,b,b); }
+    if( secondHand == 20)  { targetPalette = CRGBPalette16( b,b,b,w, b,b,b,w, b,b,b,w, b,b,b,w); }
+    if( secondHand == 30)  { targetPalette = LavaColors_p; }
+    if( secondHand == 40)  { targetPalette = CloudColors_p; }
+    if( secondHand == 50)  { targetPalette = PartyColors_p; }
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+/*
+
+void drawCircle(int16_t x0, int16_t y0, uint16_t radius, const CRGB& color)
+{
+  int a = radius, b = 0;
+  int radiusError = 1 - a;
+
+  if (radius == 0) {
+    leds[XY(x0, y0)] = color;
+    return;
+  }
+
+  while (a >= b)
+  {
+    leds[XY(a + x0, b + y0)] = color;
+    leds[XY(b + x0, a + y0)] = color;
+    leds[XY(-a + x0, b + y0)] = color;
+    leds[XY(-b + x0, a + y0)] = color;
+    leds[XY(-a + x0, -b + y0)] = color;
+    leds[XY(-b + x0, -a + y0)] = color;
+    leds[XY(a + x0, -b + y0)] = color;
+    leds[XY(b + x0, -a + y0)] = color;
+
+    b++;
+    if (radiusError < 0)
+      radiusError += 2 * b + 1;
+    else
+    {
+      a--;
+      radiusError += 2 * (b - a + 1);
+    }
+  }
+}
+
+void dimAll(byte value)
+{
+  for (int i = 0; i < NUM_LEDS; i++) {
+    leds[i].nscale8(value);
+  }
+}
+
+CRGB solidColor = CRGB::White;
+
+typedef uint16_t(*PatternFunctionPointer)();
+typedef PatternFunctionPointer PatternList [];
+
+int currentPatternIndex = 0;
+PatternFunctionPointer currentPattern;
+
+CRGB w(85, 85, 85), W(CRGB::White);
+CRGBPalette16 snowColors = CRGBPalette16( W, W, W, W, w, w, w, w, w, w, w, w, w, w, w, w );
+
+CRGBPalette16 incandescentColors = CRGBPalette16( l, l, l, l, l, l, l, l, l, l, l, l, l, l, l, l );
+
+const CRGBPalette16 palettes[] = {
+  RainbowColors_p,
+  RainbowStripeColors_p,
+  OceanColors_p,
+  CloudColors_p,
+  ForestColors_p,
+  PartyColors_p,
+  HeatColors_p,
+  LavaColors_p,
+  snowColors,
+};
+
+const int paletteCount = ARRAY_SIZE(palettes);
+
+int currentPaletteIndex = 0;
+CRGBPalette16 palette = palettes[0];
+
+void  pulse() {
+//  palette = RainbowColors_p;
+
+  static uint8_t hue = 0;
+  static uint8_t centerX = 0;
+  static uint8_t centerY = 0;
+  static uint8_t step = 0;
+
+  static const uint8_t maxSteps = 16;
+  static const float fadeRate = 0.8;
+
+  dimAll(235);
+
+  if (step == 0) {
+    centerX = random(16);
+    centerY = random(8);
+    hue = random(256); // 170;
+
+    drawCircle(centerX, centerY, step, ColorFromPalette(palette, hue));
+    step++;
+  }
+  else {
+    if (step < maxSteps) {
+      // initial pulse
+      drawCircle(centerX, centerY, step, ColorFromPalette(palette, hue, pow(fadeRate, step - 2) * 255));
+
+      // secondary pulse
+      if (step > 3) {
+        drawCircle(centerX, centerY, step - 3, ColorFromPalette(palette, hue, pow(fadeRate, step - 2) * 255));
+      }
+      step++;
+    }
+    else {
+      step = 0;
+    }
+  }
+
+  //return 30;
+}
+
+*/
